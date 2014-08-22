@@ -1,0 +1,4 @@
+HipBot
+======
+
+Chatbot for Hipchat

@@ -30,8 +30,8 @@ def karma(request):
                 getHypChat().get_room("Bot Testing").message("Yup, it's karma")
                 hc = getHypChat()
                 hc.get_room(item['room']['id']).message("Karma received! recipient: "
-                                                        + karma.recipient.id + ", sender: "
-                                                        + karma.sender.id + ", value: "
+                                                        + str(karma.recipient.id) + ", sender: "
+                                                        + str(karma.sender.id) + ", value: "
                                                         + karma.value + ", comment: "
                                                         + karma.comment)
                 return HttpResponse()

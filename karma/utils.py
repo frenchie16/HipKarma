@@ -85,7 +85,7 @@ def getUserId(name):
 
 def getMentionName(id):
 
-    hc = get HypChat()
+    hc = getHypChat()
 
     try:
         user = hc.get_user(id)

@@ -45,7 +45,7 @@ def parseMessage(message):
         # and for sender
         try:
             sender_entity = KarmicEntity.objects.get(id=sender)
-        except DoesNotExist:
+        except KarmicEntity.DoesNotExist:
             sender_entity = KarmicEntity(id=sender, is_user=True)
             sender_entity.save
 

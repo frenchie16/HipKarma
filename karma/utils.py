@@ -67,6 +67,7 @@ def parseMessage(message):
                       value=value, comment=comment)
         getHypChat().get_room("Bot Testing").message("Saving karma")
         karma.save()
+        return karma
 
     return None
 

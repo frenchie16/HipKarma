@@ -20,23 +20,27 @@ def parseMessage(message):
     result = regex.match(text)
 
     if result:
+        getHypChat().get_room("Bot Testing").message("Regex passes")
 
         groups = result.groups()
         
         recipient = groups[0]
 
+        getHypChat().get_room("Bot Testing").message("Getting user id for " + recipient)
         # check if the karma recipient is a user and if so, use their ID instead of name
         recipient_id = getUserId(recipient)
         is_user = bool(recipient_id)
         if(is_user):
             recipient = recipient_id
-
+        getHypChat().get_room("Bot Testing").message("Got user id")
         # get or create the karmicentity for the recipient
         try:
             recipient_entity = KarmicEntity.objects.get(id=recipient)
         except DoesNotExist:
+            getHypChat().get_room("Bot Testing").message("Creating karmic entity")
             recipient_entity = KarmicEntity(id=recipient, is_user=is_user)
             recipient_entity.save()
+        getHypChat().get_room("Bot Testing").message("Got karmic entity")
 
         # and for sender
         try:

@@ -13,19 +13,21 @@ def index(request):
 @csrf_exempt
 def karma(request):
 
-    getHypChat().get_room("Bot Testing").message(request.body)
+    getHypChat().get_room("Bot Testing").message("Loading json: " + request.body)
     
     req = json.loads(request.body)
+    getHypChat().get_room("Bot Testing").message("Loaded")
 
     try:
         if req['event'] == 'room_message':
 
             item = req['item']
             message = item['message']
+            getHypChat().get_room("Bot Testing").message("Parsing message")
             karma = parseMessage(message)
-        
+            getHypChat().get_room("Bot Testing").message("Parsed")
             if karma:
-                #karma.save()
+                getHypChat().get_room("Bot Testing").message("Yup, it's karma")
                 hc = getHypChat()
                 hc.get_room(item['room']['id']).message("Karma received! recipient: "
                                                         + karma.recipient.id + ", sender: "

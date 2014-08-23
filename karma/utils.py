@@ -31,6 +31,20 @@ def parseMessage(message):
         if(is_user):
             recipient = recipient_id
 
+        # get or create the karmicentity for the recipient
+        try:
+            recipient_entity = KarmicEntity.objects.get(id=recipient)
+        except DoesNotExist:
+            recipient_entity = KarmicEntity(id=recipient, is_user=is_user)
+            recipient_entity.save()
+
+        # and for sender
+        try:
+            sender_entity = KarmicEntity.objects.get(id=sender)
+        except DoesNotExist:
+            sender_entity = KarmicEntity(id=sender, is_user=True)
+            sender_entity.save
+
         if groups[1] == '++':
             value = Karma.GOOD
 
@@ -42,8 +56,9 @@ def parseMessage(message):
 
         comment = groups[2]
 
-        return Karma(recipient=KarmicEntity(id=recipient), sender=KarmicEntity(id=sender),
-                     value=value, comment=comment)
+        karma = Karma(recipient=recipient_entity, sender=sender_entity,
+                      value=value, comment=comment)
+        karma.save()
 
     return None
 

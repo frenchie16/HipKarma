@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import sys
 import dj_database_url
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -103,3 +104,23 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+# Log errors to stdout
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console':{
+            'level':'INFO',
+            'class':'logging.StreamHandler',
+            'stream': sys.stdout
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

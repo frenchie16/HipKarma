@@ -7,4 +7,4 @@ from .models import Karma
 def index(request):
     return HttpResponse('Hello from HipKarma!')
 
-def 
+

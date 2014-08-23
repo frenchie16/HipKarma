@@ -34,7 +34,7 @@ class KarmicEntity(models.Model):
     """
     min_karma = models.IntegerField('min karma', default=0)
     
-    def applyKarma(karma, self):
+    def applyKarma(self, karma):
         new_karma = self.karma
         if karma == Karma.GOOD:
             new_karma += 1

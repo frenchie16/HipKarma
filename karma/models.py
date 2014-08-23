@@ -3,25 +3,33 @@ from django.db import models
 # Create your models here.
 class Karma(models.Model):
 
+    GOOD = 'G'
+    BAD = 'B'
+
     KARMA_VALUES = (
-        ('G', 'Good'),
-        ('B', 'Bad'),
-        ('N', 'Neutral')
+        (GOOD, 'Good'),
+        (BAD, 'Bad'),
     )
 
     """
-    Either the ID of the user (NOT their email nor mention name, as these can change),
-    or the string (for when people give inanimate objects karma)
+    If the recipient is a user, the ID of the user (NOT their email nor mention name,
+    as these can change), or else the string (for when people give inanimate objects
+    karma)
     """
-    who = models.CharField('recipient', max_length=50, db_index=True)
+    recipient = models.CharField('recipient', max_length=50, db_index=True)
 
     """
     True if 'who' is the ID of a user, false otherwise (if 'who' is just some string).
     """
-    is_user = models.BooleanField('recipient is user')
+    is_user = models.BooleanField('is user')
 
     """
-    The karma value, one of good, bad, or neutral.
+    The ID of the user (not email nor mention name) who gave the karma.
+    """
+    sender = models.CharField('sender', max_length=50)
+
+    """
+    The karma value, one of good or bad (could add others like neutral)
     """
     value = models.CharField('karma value', max_length=1, choices=KARMA_VALUES)
 

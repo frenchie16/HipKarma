@@ -36,7 +36,7 @@ def parseMessage(message):
         # get or create the karmicentity for the recipient
         try:
             recipient_entity = KarmicEntity.objects.get(id=recipient)
-        except DoesNotExist:
+        except KarmicEntity.DoesNotExist:
             getHypChat().get_room("Bot Testing").message("Creating karmic entity")
             recipient_entity = KarmicEntity(id=recipient, is_user=is_user)
             recipient_entity.save()

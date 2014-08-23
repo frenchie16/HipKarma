@@ -12,6 +12,8 @@ def index(request):
 
 @csrf_exempt
 def karma(request):
+
+    getHypChat().get_room("Bot Testing").message(request.body)
     
     req = json.loads(request.body)
 

@@ -2,6 +2,12 @@
 
 Karma system for Hipchat
 
+## Configuration
+
+The following environment variables should be set in `.env` (for running locally) or with heroku config:set (for running on heroku):
+* `HIPCHAT_TOKEN`: your auth token for HipChat
+* `ROOMS`: a pipe-separated list of rooms (listed by name or by ID) in which karma should be tracked.
+
 ## Running Locally
 
 Make sure you have Python [installed properly](http://install.python-guide.org).  Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/).

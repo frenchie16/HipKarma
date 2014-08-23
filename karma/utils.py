@@ -54,7 +54,7 @@ def parseMessage(message):
             return None        
 
         # update karma totals on recipient
-        recipientEntity.applyKarma(value)
+        recipient_entity.applyKarma(value)
         recipient_entity.save()
 
 

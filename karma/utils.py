@@ -3,7 +3,7 @@ import re
 from hypchat import HypChat
 from hypchat.requests import HttpNotFound
 
-from .models import Karma
+from .models import *
 
 KARMA_REGEX=r'^(\([^)]+\)|[^ ]+)([+]{2}|[-]{2})(.*)?$'
 

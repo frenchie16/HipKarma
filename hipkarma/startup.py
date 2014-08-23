@@ -10,7 +10,7 @@ def setupWebHook():
     for room in os.environ['ROOMS'].split('|'):
         hooks = hc.get_room(room).webhooks()
         for hook in (hooks.contents()):
-            if hook.url == WEBHOOK_URL:
+            if hook.name == 'HipKarma':
                 found=True;
                 break;
         if not found:

@@ -25,7 +25,7 @@ def karma(request):
             if karma:
                 #karma.save()
                 hc = getHypChat()
-                hc.get_room(item['room']).message("Karma received")
+                hc.get_room(item['room']['id']).message("Karma received")
                 return HttpResponse()
 
     except LookupError:

@@ -18,8 +18,34 @@ class KarmicEntity(models.Model):
     True if id is the ID of a user, false otherwise (if 'id' is just some string).
     """
     is_user = models.BooleanField('is user')
+
+    """
+    Entity's current karma total
+    """
+    karma = models.IntegerField('karma')
+
+    """
+    Highest karma ever
+    """
+    max_karma = models.IntegerField('max karma')
     
+    """
+    Lowest karma ever
+    """
+    min_karma = models.IntegerField('min karma')
     
+    def applyKarma(karma, self):
+        new_karma = self.karma
+        if karma == Karma.GOOD:
+            new_karma += 1
+        if karma == Karma.BAD:
+            new_karma -= 1
+
+        if new_karma > self.max_karma:
+            self.max_karma = new_karma
+        if new_karma < self.min_karma:
+            self.min_karma = new_karma
+        self.karma = new_karma
 
 class Karma(models.Model):
 

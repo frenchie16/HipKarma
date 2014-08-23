@@ -34,8 +34,8 @@ def parseMessage(message):
         try:
             recipient_entity = KarmicEntity.objects.get(id=str(recipient))
         except KarmicEntity.DoesNotExist:
+            # will be saved below when we update karma totals
             recipient_entity = KarmicEntity(id=recipient, is_user=is_user)
-            recipient_entity.save()
 
         # and for sender
         try:
@@ -52,6 +52,11 @@ def parseMessage(message):
 
         else:
             return None        
+
+        # update karma totals on recipient
+        recipientEntity.applyKarma(value)
+        recipient_entity.save()
+
 
         comment = groups[2]
 
@@ -76,6 +81,18 @@ def getUserId(name):
         return None
 
     return user.id
+
+
+def getMentionName(id):
+
+    hc = get HypChat()
+
+    try:
+        user = hc.get_user(id)
+    except HttpNotFound:
+        return None
+
+    return user.mention_name
 
 
 """

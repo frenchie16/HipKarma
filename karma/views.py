@@ -23,11 +23,9 @@ def karma(request):
             karma = parseMessage(message)
             if karma:
                 hc = getHypChat()
-                hc.get_room(item['room']['id']).message("Karma received! recipient: "
-                                                        + str(karma.recipient.id) + ", sender: "
-                                                        + str(karma.sender.id) + ", value: "
-                                                        + karma.value + ", comment: "
-                                                        + karma.comment)
+                hc.get_room(item['room']['id']).message(
+                    [getMentionName(karma.recipient.id), "'s karma is now ",
+                     karma.recipient.karma, "."].join()
                 return HttpResponse()
 
     except LookupError:

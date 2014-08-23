@@ -22,17 +22,17 @@ class KarmicEntity(models.Model):
     """
     Entity's current karma total
     """
-    karma = models.IntegerField('karma')
+    karma = models.IntegerField('karma', default=0)
 
     """
     Highest karma ever
     """
-    max_karma = models.IntegerField('max karma')
+    max_karma = models.IntegerField('max karma', default=0)
     
     """
     Lowest karma ever
     """
-    min_karma = models.IntegerField('min karma')
+    min_karma = models.IntegerField('min karma', default=0)
     
     def applyKarma(karma, self):
         new_karma = self.karma

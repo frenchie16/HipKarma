@@ -30,7 +30,7 @@ def karma(request):
                 hc = getHypChat()
                 hc.get_room(item['room']['id']).message(
                     ''.join([recipient_name, "'s karma is now ", str(karma.recipient.karma), '.']),
-                    format=True)
+                    format="text")
                     
                 return HttpResponse()
 

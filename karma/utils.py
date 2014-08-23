@@ -32,7 +32,7 @@ def parseMessage(message):
         is_user = bool(recipient_id)
         if(is_user):
             recipient = recipient_id
-        getHypChat().get_room("Bot Testing").message("Got user id")
+        getHypChat().get_room("Bot Testing").message("Got user id, trying to get or create recipient")
         # get or create the karmicentity for the recipient
         try:
             recipient_entity = KarmicEntity.objects.get(id=recipient)
@@ -40,14 +40,16 @@ def parseMessage(message):
             getHypChat().get_room("Bot Testing").message("Creating karmic entity")
             recipient_entity = KarmicEntity(id=recipient, is_user=is_user)
             recipient_entity.save()
-        getHypChat().get_room("Bot Testing").message("Got karmic entity")
+        getHypChat().get_room("Bot Testing").message("Got karmic entity, trying for sender")
 
         # and for sender
         try:
             sender_entity = KarmicEntity.objects.get(id=sender)
         except KarmicEntity.DoesNotExist:
+            getHypChat().get_room("Bot Testing").message("Creating karmic entity for sender (id = " + sender + ")")
             sender_entity = KarmicEntity(id=sender, is_user=True)
             sender_entity.save
+        getHypChat().get_room("Bot Testing").message("Got karmic entity")
 
         if groups[1] == '++':
             value = Karma.GOOD
@@ -60,8 +62,10 @@ def parseMessage(message):
 
         comment = groups[2]
 
+        getHypChat().get_room("Bot Testing").message("Creating karma")
         karma = Karma(recipient=recipient_entity, sender=sender_entity,
                       value=value, comment=comment)
+        getHypChat().get_room("Bot Testing").message("Saving karma")
         karma.save()
 
     return None

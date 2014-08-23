@@ -42,8 +42,8 @@ def parseMessage(message):
 
         comment = groups[2]
 
-        return Karma(recipient=recipient, is_user=is_user, sender=sender,
-                     value=value, comment=comment)
+        return Karma(recipient=KarmicEntity(id=recipient), is_user=is_user,
+                     sender=KarmicEntity(id=sender), value=value, comment=comment)
 
     return None
 

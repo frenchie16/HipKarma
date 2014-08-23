@@ -3,10 +3,7 @@ import os
 import sys
 
 if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "gettingstarted.settings")
-
-    import hipkarma.startup as startup
-    startup.run()
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hipkarma.settings")
 
     from django.core.management import execute_from_command_line
 

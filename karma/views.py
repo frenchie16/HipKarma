@@ -1,7 +1,8 @@
 import json
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
 
 from .utils import *
 from .models import *
@@ -26,7 +27,7 @@ def karma(request):
                 hc.get_room(item['room']['id']).message(
                     [getMentionName(karma.recipient.id), "'s karma is now ",
                      karma.recipient.karma, "."].join()
-                return HttpResponse("")
+                return HttpResponse()
 
     except LookupError:
         pass

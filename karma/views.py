@@ -25,8 +25,8 @@ def karma(request):
             if karma:
                 hc = getHypChat()
                 hc.get_room(item['room']['id']).message(
-                    [getMentionName(karma.recipient.id), "'s karma is now ",
-                     karma.recipient.karma, "."].join())
+                    ''.join([getMentionName(karma.recipient.id), "'s karma is now ",
+                             karma.recipient.karma, '.']))
                     
                 return HttpResponse()
 

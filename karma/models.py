@@ -1,53 +1,59 @@
 from django.db import models
 
-# Create your models here.
 
-"""
-A Karmic Entity is a thing that can have karma. It could be a user, or just some string.
-"""
 class KarmicEntity(models.Model):
+    """A thing that can have karma. It could be a user, or just some string.
 
+    Attributes:
+        id (str): If this entity is a user, their ID, otherwise the string itself
+        is_user (bool): True if this is a user and id is their id, otherwise False if this is some string
+        karma (int): This entity's current karma
+        max_karma (int): The highest value karma has ever reached
+        min_karma (int): The lowest value karma has ever reached
     """
-    If this represents a user, the ID of the user (NOT their email nor mention name,
-    as these can change), or else the string (for when people give inanimate objects
-    karma)
-    """    
+
     id = models.CharField('id', max_length=50, primary_key=True, db_index=True)
-    
-    """
-    True if id is the ID of a user, false otherwise (if 'id' is just some string).
-    """
+
     is_user = models.BooleanField('is user')
 
-    """
-    Entity's current karma total
-    """
     karma = models.IntegerField('karma', default=0)
 
-    """
-    Highest karma ever
-    """
     max_karma = models.IntegerField('max karma', default=0)
-    
-    """
-    Lowest karma ever
-    """
+
     min_karma = models.IntegerField('min karma', default=0)
-    
-    def applyKarma(self, karma):
+
+    def give_karma(self, karma):
+        """Apply karma to this entity.
+
+        Args:
+            karma (str): The type of karma. One of Karma.KARMA_VALUES.
+        """
         new_karma = self.karma
         if karma == Karma.GOOD:
             new_karma += 1
-        if karma == Karma.BAD:
+        elif karma == Karma.BAD:
             new_karma -= 1
 
         if new_karma > self.max_karma:
             self.max_karma = new_karma
-        if new_karma < self.min_karma:
+        elif new_karma < self.min_karma:
             self.min_karma = new_karma
         self.karma = new_karma
 
+
 class Karma(models.Model):
+    """An instance of karma being given to some entity.
+
+    Attributes:
+        GOOD (str): Represents good karma (one option for value)
+        BAD (str): Represents bad karma (another option for value)
+        recipient (KarmicEntity): The entity which received the karma
+        sender (KarmicEntity): The entity (always a user) who sent the karma
+        room (str): The name of the room where the karma was awarded
+        value (str): The type of karma, from KARMA_VALUES
+        when (datetime): When the karma was awarded
+        comment (str): Optional comment explaining the karma
+    """
 
     GOOD = 'G'
     BAD = 'B'
@@ -57,27 +63,14 @@ class Karma(models.Model):
         (BAD, 'Bad'),
     )
 
-    """
-    The recipient of this karma
-    """
     recipient = models.ForeignKey('KarmicEntity', name='recipient', related_name='received', db_index=True)
 
-    """
-    The sender of this karma
-    """
     sender = models.ForeignKey('KarmicEntity', name='sender', related_name='sent', db_index=True)
 
-    """
-    The karma value, one of good or bad (could add others like neutral)
-    """
+    room = models.CharField('room', max_length=50)
+
     value = models.CharField('karma value', max_length=1, choices=KARMA_VALUES)
 
-    """
-    Timestamp when karma was awarded.
-    """
     when = models.DateTimeField('date created', auto_now_add=True)
 
-    """
-    Optional comment explaining karma.
-    """
-    comment = models.CharField('comment', max_length=500, blank=True)
+    comment = models.TextField('comment', blank=True)

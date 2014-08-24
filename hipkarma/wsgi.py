@@ -8,10 +8,13 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 """
 
 import os
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hipkarma.settings")
 
-import hipkarma.startup as startup
-startup.run()
+# Run karma initialization (necessary to set up webhooks)
+import karma
+
+karma.initialize()
 
 from django.core.wsgi import get_wsgi_application
 from dj_static import Cling

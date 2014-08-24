@@ -1,40 +1,35 @@
-import json
-from django.shortcuts import render
+import logging
+
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest
+from . import utils
 
-from .utils import *
-from .models import *
 
-# Create your views here.
+logger = logging.getLogger(__name__)
+
+
 def index(request):
-    return HttpResponse('Hello from HipKarma!')
+    """Main page"""
+    # Todo Provide a nice status page, maybe some karma statistics
+    return HttpResponse('HipKarma is running.')
+
 
 @csrf_exempt
 def karma(request):
+    """Callback for HipChat webhook"""
+    # Parse the webhook payload into a RestObject
+    payload = utils.parse_webhook_payload(request.body)
+    if payload:
+        # Handle the payload. If successful this will update the database to reflect the new karma.
+        karma = utils.handle_webhook_payload(payload)
 
-    req = json.loads(request.body)
-
-    try:
-        if req['event'] == 'room_message':
-
-            item = req['item']
-            message = item['message']
-            karma = parseMessage(message)
-            if karma:
-                if karma.recipient.is_user:
-                    recipient_name = getMentionName(karma.recipient.id)
-                else:
-                    recipient_name = karma.recipient.id
-                hc = getHypChat()
-                hc.get_room(item['room']['id']).message(
-                    ''.join([recipient_name, "'s karma is now ", str(karma.recipient.karma), '.']),
-                    format="text")
-                    
-                return HttpResponse()
-
-    except LookupError:
-        pass
-
-    return HttpResponseBadRequest()
+        if karma:
+            utils.send_karma_notification(karma)
+            logger.info('Successfully processed karma')
+            return HttpResponse('Successfully processed karma')
+        else:
+            logger.error('Invalid payload')
+            return HttpResponseBadRequest('Invalid payload')
+    else:
+        logger.error('Invalid karma message')
+        return HttpResponseBadRequest('Invalid karma message')

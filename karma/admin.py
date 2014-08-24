@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import Karma, KarmicEntity
 
-# Register your models here.
+
+admin.site.register(Karma)
+admin.site.register(KarmicEntity)

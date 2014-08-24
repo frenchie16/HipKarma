@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Todo Get WEBHOOK_URL from some configuration
 WEBHOOK_URL = 'http://hipkarma.heroku.com/karma'
-KARMA_REGEX = r'^(?:\(([^)]+)\)|([^ ]+))(\+\+|--)[\s]*(?:#|\/\/)?(.*)?$'
+KARMA_REGEX = r'^(?:\(([^)\s]+(?:\s[^)\s]+)+)\)|([^\s]+)) ?(\+\+|--)(?:[\s]*(?:#|\/\/)(.*)?)?$$'
 
 
 def get_hypchat():

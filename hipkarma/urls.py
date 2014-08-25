@@ -12,6 +12,7 @@ urlpatterns = patterns('',
                        # url(r'^blog/', include('blog.urls')),
 
                        url(r'^karma$', karma.views.karma, name='karma'),
+                       url(r'^emotes$', karma.views.emotes, name='emotes'),
                        url(r'^$', karma.views.index, name='index'),
                        url(r'^admin/', include(admin.site.urls)),
 )

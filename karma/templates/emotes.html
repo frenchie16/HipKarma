@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Emotes</title>
+</head>
+<body>
+<table>
+    {% for s, u in emotes %}
+    <tr>
+        <td>
+            {{ s }}
+        </td>
+        <td>
+            <img src="{{ u }}" width="32" height="32">
+        </td>
+        {% endfor %}
+    </tr>
+</table>
+</body>
+</html>

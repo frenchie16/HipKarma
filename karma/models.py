@@ -73,4 +73,4 @@ class Karma(models.Model):
 
     when = models.DateTimeField('date created', auto_now_add=True)
 
-    comment = models.TextField('comment', blank=True)
+    comment = models.TextField('comment', blank=True, null=True)

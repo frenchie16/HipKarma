@@ -8,27 +8,23 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import sys
 
-import os
 import dj_database_url
+import os
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 DEFAULT_SECRET_KEY = '3iy-!-d$!pc_ll$#$elg&cpr@*tfn-d5&n9ag=)%#()t$$5%5^'
 SECRET_KEY = os.environ.get('SECRET_KEY', DEFAULT_SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-TEMPLATE_DEBUG = True
+# Set debug from the environment variable DJANGO_DEBUG
+DEBUG = bool(os.environ.get('DJANGO_DEBUG', False))
+TEMPLATE_DEBUG = DEBUG
 
 
 # Application definition
@@ -61,10 +57,7 @@ WSGI_APPLICATION = 'hipkarma.wsgi.application'
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': dj_database_url.config()
 }
 
 # Internationalization
@@ -84,9 +77,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static/'),
+)
 
 # Parse database configuration from $DATABASE_URL
 DATABASES['default'] = dj_database_url.config()
@@ -94,13 +90,17 @@ DATABASES['default'] = dj_database_url.config()
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Allow all host headers
-ALLOWED_HOSTS = ['*']
+# Allow only running on Heroku
+ALLOWED_HOSTS = [
+    'hipkarma.heroku.com',
+    'hipkarma.herokuapp.com',
+]
 
-
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
+if DEBUG:
+    ALLOWED_HOSTS.extend([
+        'localhost',
+        'hipkarma.ngrok.com',
+    ])
 
 # Log errors to stdout
 

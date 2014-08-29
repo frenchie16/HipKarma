@@ -1,0 +1,39 @@
+{
+    "name": {{ addon_name|safe }},
+    "description": "A karma system for HipChat",
+    "key": {{ addon_key|safe }},
+    "links": {
+        "homepage": {{ homepage_url|safe }},
+        "self": {{ capabilities_url|safe }}
+    },
+    "capabilities": {
+        "hipchatApiConsumer": {
+            "scopes": [
+                "send_notification",
+                "admin_room",
+                "view_group",
+                "view_messages"
+            ],
+            "fromname": {{ addon_chat_name|safe }}
+        },
+        "webhook": [
+            {
+                "url": {{ give_hook_url|safe }},
+                "pattern": {{ give_hook_regex|safe }},
+                "event": "room_message",
+                "name": {{ give_hook_name|safe }}
+            },
+            {
+                "url": {{ show_hook_url|safe }},
+                "pattern": {{ show_hook_regex|safe }},
+                "event": "room_message",
+                "name": {{ show_hook_name|safe }}
+            }
+        ],
+        "installable": {
+            "callbackUrl": {{ install_url|safe }},
+            "allowGlobal": false,
+            "allowRoom": true
+        }
+    }
+}

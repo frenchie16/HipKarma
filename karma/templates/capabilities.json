@@ -28,6 +28,12 @@
                 "pattern": {{ show_hook_regex|safe }},
                 "event": "room_message",
                 "name": {{ show_hook_name|safe }}
+            },
+            {
+                "url": {{ help_hook_url|safe }},
+                "pattern": {{ help_hook_regex|safe }},
+                "event": "room_message",
+                "name": {{ help_hook_name|safe }}
             }
         ],
         "installable": {

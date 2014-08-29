@@ -26,5 +26,8 @@ REGEXES = {
 
     # Regex for chat command to show someone/something's karma
     # Capture group 0 or 1 should contain the name to show karma for (the other should be empty)
-    'show_karma': r'^@{name} for (?:(@)?(\S{{1,50}}) ?|\(([^)\r\n]{{1,48}})\))$'.format(name=ADDON_CHAT_NAME)
+    'show_karma': r'^@{name} for (?:(@)?(\S{{1,50}}) ?|\(([^)\r\n]{{1,48}})\))$'.format(name=ADDON_CHAT_NAME),
+
+    # Regex for chat command to show help
+    'help': r'^@{name} help$'.format(name=ADDON_CHAT_NAME),
 }

@@ -5,7 +5,7 @@ Karma system for Hipchat. Can be installed to a HipChat room as an Add-On.
 
 ## Usage
 
-Install HipKarma on a room in HipChat by entering the URL of the capabilities descriptor (`/api/capabilities`) on
+Install HipKarma on a room in HipChat by entering the URL of the capabilities descriptor (`/karma/capabilities`) on
 HipChat's configuration page.
 
 Give karma by sending a message in a room which HipChat is installed on like this:

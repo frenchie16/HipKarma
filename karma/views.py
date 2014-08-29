@@ -46,7 +46,7 @@ def install(request):
     if request.method == 'POST':
         # Deserialize payload from JSON
         try:
-            payload = json.loads(request.body)
+            payload = json.loads(request.body.decode())
         except ValueError:
             logger.error('Invalid JSON')
             return HttpResponseBadRequest('Invalid JSON')
@@ -115,7 +115,7 @@ def give_hook(request):
     if request.method == 'POST':
         # Load the webhook payload from JSON
         try:
-            payload = json.loads(request.body)
+            payload = json.loads(request.body.decode())
         except ValueError:
             logger.error('Invalid JSON')
             return HttpResponseBadRequest('Invalid JSON')
@@ -226,7 +226,7 @@ def show_hook(request):
     if request.method == 'POST':
         # Load the webhook payload from JSON
         try:
-            payload = json.loads(request.body)
+            payload = json.loads(request.body.decode())
         except ValueError:
             logger.error('Invalid JSON')
             return HttpResponseBadRequest('Invalid JSON')

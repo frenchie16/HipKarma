@@ -36,7 +36,10 @@ def capabilities(request):
                        'give_hook_name': json.dumps(settings.ADDON_KEY + '.hooks.give'),
                        'show_hook_url': json.dumps(request.build_absolute_uri(reverse(show_hook))),
                        'show_hook_regex': json.dumps(settings.REGEXES['show_karma']),
-                       'show_hook_name': json.dumps(settings.ADDON_KEY + '.hooks.show')},
+                       'show_hook_name': json.dumps(settings.ADDON_KEY + '.hooks.show'),
+                       'help_hook_url': json.dumps(request.build_absolute_uri(reverse(help_hook))),
+                       'help_hook_regex': json.dumps(settings.REGEXES['help']),
+                       'help_hook_name': json.dumps(settings.ADDON_KEY + '.hooks.help')},
                       content_type='application/json')
 
 
@@ -286,3 +289,43 @@ def show_hook(request):
                                          max=entity.max_karma),
                                      instance.oauth_token)
         return HttpResponse('Showed karma successfully')
+
+
+@csrf_exempt
+def help_hook(request):
+    """Callback for help webhook
+
+    Sends a room notification with some help info.
+    Triggered by a message like "@karma help".
+    """
+    if request.method == 'POST':
+        # Load the webhook payload from JSON
+        try:
+            payload = json.loads(request.body.decode())
+        except ValueError:
+            logger.error('Invalid JSON')
+            return HttpResponseBadRequest('Invalid JSON')
+
+        try:
+            # Get the necessary data out of the payload
+            if payload['event'] != 'room_message':
+                logger.error('Unexpected event type ({type})').format(type=payload['event'])
+                return HttpResponseBadRequest('')
+            item = payload['item']
+            oauth_client_id = payload['oauth_client_id']
+            room = item['room']
+            room_id = room['id']
+        except KeyError:
+            logger.error('Invalid payload data')
+            return HttpResponseBadRequest('Invalid payload data')
+
+        # Get the instance from the OAuth ID, and the group from the instance
+        instance = models.Instance.objects.get(oauth_client_id=oauth_client_id)
+
+        # Send the help notification
+        utils.send_room_notification(room_id,
+                                     'For help and more information, see {index_url}.'.format(
+                                         index_url=request.build_absolute_uri(reverse(index))
+                                     ),
+                                     instance.oauth_token)
+        return HttpResponse('Showed help successfully')

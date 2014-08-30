@@ -254,7 +254,18 @@ def show_hook(request):
         logger.error('Invalid payload data')
         return HttpResponseBadRequest('Invalid payload data')
 
-    entity = KarmicEntity.objects.get(group=group, type=type_, name=id_)
+    try:
+        entity = KarmicEntity.objects.get(group=group, type=type_, name=id_)
+    except KarmicEntity.DoesNotExist:
+        # Notify room that entity does not exist
+        instance.send_room_notification(
+            '{symbol}{name} has never received any karma.'
+            .format(
+                symbol=mention,
+                name=name,
+            )
+        )
+        return HttpResponse('Karma did not exist, notified room.')
 
     # Notify room about the karma
     instance.send_room_notification(

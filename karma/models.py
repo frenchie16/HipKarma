@@ -1,4 +1,5 @@
 from django.db import models
+from karma.hipchat import HipChat
 
 
 class Group(models.Model):
@@ -24,11 +25,81 @@ class Instance(models.Model):
         oauth_client_id (str): The OAuth client ID for this instance
         oauth-secret (str): The OAuth secret for this instance
         oauth_token (str): The OAuth token for this instance
+        room_id (int): The ID of the room this instance is installed in
+        group (Group): The HipChat group this instance is installed in
     """
     oauth_client_id = models.CharField(max_length=50, primary_key=True)
     oauth_secret = models.CharField(max_length=50)
     oauth_token = models.CharField(max_length=50)
+    room_id = models.IntegerField()
     group = models.ForeignKey(Group, related_name='instances')
+
+    class InvalidCapabilities(Exception):
+        pass
+
+    @classmethod
+    def install(cls, client_id, secret, room_id, capabilities_url=None):
+        """Create a new Instance with the information provided by HipChat upon addon installation
+
+        Note that the model created will automatically be saved to the database, no need to save it again.
+        A Group may also be created and saved if one did not already exist for the group this instance serves.
+
+        Args:
+            client_id (str): The OAuth client ID
+            secret (str): The OAuth secret
+        Returns:
+            Instance: A newly-created instance from the information provided
+        """
+
+        if capabilities_url is not None:
+            if not HipChat.validate_capabilities(capabilities_url):
+                raise cls.InvalidCapabilities
+
+        instance = Instance(oauth_client_id=client_id, oauth_secret=secret, room_id=room_id)
+        group_id = instance.refresh_token(False)
+        try:
+            group = Group.objects.get(group_id=group_id)
+        except Group.DoesNotExist:
+            group = Group.objects.create(group_id=group_id)
+        instance.group = group
+        instance.save()
+        return instance
+
+    def refresh_token(self, save=True):
+        """Get a fresh OAuth token using the secret and client ID.
+
+        Returns the group ID of the group the token is valid for because bizarrely, the only way to get the group ID
+        from HipChat is through the token endpoint, when you generate a token.
+        By default, causes this Instance to be saved.
+
+        Args:
+            save (bool): If True, will save after refreshing the token. Defaults to True.
+        Returns:
+            int: The group ID of the group the token is valid for
+        """
+        group_id, self.oauth_token = HipChat.authenticate(self.oauth_client_id, self.oauth_secret)
+        if save:
+            self.save()
+        return group_id
+
+    def send_room_notification(self, message):
+        """Sends a notification to a room
+
+        Args:
+            room (int, str): The ID or name of the room
+            message (str): The text of the message
+        Exceptions:
+            HipChatApiError: If the request to send the notification is unsuccessful.
+        """
+        try:
+            hipchat = HipChat(self.oauth_token)
+            hipchat.send_room_notification(self.room_id, message)
+        except HipChat.Unauthorized:
+            # If authentication fails, refresh token and try once more, because probably the token expired.
+            # If it still fails just throw the exception because refreshing the token again is unlikely to help
+            self.refresh_token()
+            hipchat = HipChat(self.oauth_token)
+            hipchat.send_room_notification(self.room_id, message)
 
     def __str__(self):
         return "Instance (Client ID: {client_id})".format(client_id=self.oauth_client_id)
@@ -54,11 +125,6 @@ class KarmicEntity(models.Model):
         (STRING, 'String'),
     ]
 
-    class Meta:
-        index_together = [
-            ['group', 'name', 'type']
-        ]
-
     group = models.ForeignKey(Group, related_name='karmic_entities')
     name = models.CharField(max_length=50)
     type = models.CharField(max_length=1, choices=KARMIC_ENTITY_TYPES)
@@ -66,16 +132,23 @@ class KarmicEntity(models.Model):
     max_karma = models.IntegerField(default=0)
     min_karma = models.IntegerField(default=0)
 
-    def give_karma(self, karma):
+    class Meta:
+        index_together = [
+            ['group', 'name', 'type']
+        ]
+
+    def give_karma(self, value):
         """Apply karma to this entity.
+
+        Automatically saves this entity after applying the karma.
 
         Args:
             karma (str): The type of karma. One of Karma.KARMA_VALUES.
         """
         new_karma = self.karma
-        if karma == Karma.GOOD:
+        if value == Karma.GOOD:
             new_karma += 1
-        elif karma == Karma.BAD:
+        elif value == Karma.BAD:
             new_karma -= 1
 
         if new_karma > self.max_karma:
@@ -83,6 +156,7 @@ class KarmicEntity(models.Model):
         elif new_karma < self.min_karma:
             self.min_karma = new_karma
         self.karma = new_karma
+        self.save()
 
     def __str__(self):
         return "User {id}".format(id=self.name) if self.type == KarmicEntity.USER else self.name
@@ -112,10 +186,60 @@ class Karma(models.Model):
 
     recipient = models.ForeignKey(KarmicEntity, related_name='karma_received', db_index=True)
     sender = models.ForeignKey(KarmicEntity, related_name='karma_sent', db_index=True)
-    room = models.IntegerField()
-    value = models.CharField(max_length=1, choices=KARMA_VALUES, db_index=True)
+    instance = models.ForeignKey(Instance)
+    value = models.CharField(max_length=1, choices=KARMA_VALUES)
     when = models.DateTimeField(auto_now_add=True)
     comment = models.TextField(blank=True, null=True)
+
+    class SelfKarma(Exception):
+        pass
+
+    @classmethod
+    def apply_new(cls, instance, sender, recipient, recipient_type, value, comment=None):
+        """Apply new karma.
+
+        Creates/saves (as necessary) model objects for the sender and recipient.
+        The returned Karma object is also automatically saved.
+
+        Args:
+            instance (Instance): The instance for which we are applying karma
+            sender (int): The user ID of the sender of the karma
+            recipient (str, int): The user ID (if user) or string of the recipient of the karma
+            recipient_type (str): One of KarmicEntity.KARMIC_ENTITY_TYPES, the type of the recipient
+            value: One of Karma.KARMA_VALUES, the value of the karma
+            comment: An optional comment for the karma
+        Exceptions:
+            SelfKarma: If the sender and the recipient are the same
+        """
+        group = instance.group
+
+        # Disallow giving karma to oneself
+        if recipient_type == KarmicEntity.USER and sender == recipient:
+            raise cls.SelfKarma
+
+        # Get or create the KarmicEntity for the recipient
+        try:
+            recipient_entity = KarmicEntity.objects.get(group=group, name=recipient, type=recipient_type)
+        except KarmicEntity.DoesNotExist:
+            recipient_entity = KarmicEntity.objects.create(group=group, name=recipient, type=recipient_type)
+
+        # Get or create the KarmicEntity for the sender
+        try:
+            sender_entity = KarmicEntity.objects.get(group=group, name=sender, type=KarmicEntity.USER)
+        except KarmicEntity.DoesNotExist:
+            sender_entity = KarmicEntity.objects.create(group=group, name=sender, type=KarmicEntity.USER)
+
+        # Save a new karma with the data
+        karma = Karma.objects.create(recipient=recipient_entity,
+                                     sender=sender_entity,
+                                     instance=instance,
+                                     value=value,
+                                     comment=comment)
+
+        # Update karma totals on recipient
+        recipient_entity.give_karma(value)
+
+        return karma
 
     def __str__(self):
         return "{sender}->{recipient} ({value})".format(sender=str(self.sender),

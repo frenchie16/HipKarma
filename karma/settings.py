@@ -3,6 +3,7 @@ Settings for the Karma app.
 """
 
 import os
+import re
 
 HIPCHAT_API_URL = 'https://api.hipchat.com/v2'
 
@@ -31,3 +32,6 @@ REGEXES = {
     # Regex for chat command to show help
     'help': r'^@{name} help$'.format(name=ADDON_CHAT_NAME),
 }
+
+# Compiled version of REGEXES for performance
+COMPILED_REGEXES = {k: re.compile(v) for k, v in REGEXES.items()}

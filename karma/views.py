@@ -305,6 +305,8 @@ def help_hook(request):
             logger.error('Unexpected event type ({type})').format(type=payload['event'])
             return HttpResponseBadRequest('')
         item = payload['item']
+        message = item['message']
+        message_text = message['message']
         oauth_client_id = payload['oauth_client_id']
     except KeyError:
         logger.error('Invalid payload data')
@@ -312,6 +314,12 @@ def help_hook(request):
 
     # Get the instance from the OAuth ID, and the group from the instance
     instance = Instance.objects.get(oauth_client_id=oauth_client_id)
+
+    # Check that the regex is matched and use it to extract the name
+    match_result = settings.COMPILED_REGEXES['help'].match(message_text)
+    if not match_result:
+        logger.error('Message does not match regex')
+        return HttpResponseBadRequest('Message does not match regex')
 
     # Send the help notification
     instance.send_room_notification(

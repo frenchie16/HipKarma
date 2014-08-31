@@ -325,7 +325,7 @@ def help_hook(request):
     instance.send_room_notification(
         'Give karma like this: "target++ #comment"\n'
         'Remember to use an @mention for the target if the target is a person!\n'
-        'Use "++" for positive karma and "--" for negative karma.\n'
+        'Use "++" for good karma and "--" for bad karma.\n'
         'The comment can start with either "//" or "#" and is optional.\n'
         'If your target has whitespace in it, surround it with parentheses, like this: "(two words)++"\n'
         'To check the karma for someone (or something), use: "@{addon_chat_name} for target"\n'

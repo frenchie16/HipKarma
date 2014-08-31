@@ -156,7 +156,7 @@ def give_hook(request):
 
     # Determine if recipient_name is a valid mention and set recipient_id and recipient_type accordingly
     try:
-        if mention and mentions and mentions[0]['mention_name'] == recipient_name:
+        if mention and mentions and mentions[0]['mention_name'].lower() == recipient_name.lower():
             recipient_type = KarmicEntity.USER
             recipient_id = mentions[0]['id']
         else:

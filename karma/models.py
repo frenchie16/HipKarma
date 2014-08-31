@@ -214,7 +214,7 @@ class Karma(models.Model):
         group = instance.group
 
         # Disallow giving karma to oneself
-        if recipient_type == KarmicEntity.USER and sender == recipient:
+        if recipient_type == KarmicEntity.USER and value != Karma.BAD and sender == recipient:
             raise cls.SelfKarma
 
         # Get or create the KarmicEntity for the recipient

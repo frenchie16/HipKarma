@@ -6,3 +6,4 @@ gunicorn==19.1.1
 psycopg2==2.5.3
 requests==2.3.0
 static3==0.5.1
+https://www.djangoproject.com/download/1.7c3/tarball/

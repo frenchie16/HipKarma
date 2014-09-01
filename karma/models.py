@@ -1,3 +1,5 @@
+import random
+
 from django.db import models
 from karma.hipchat import HipChat
 
@@ -108,12 +110,16 @@ class Instance(models.Model):
 class KarmicEntity(models.Model):
     """A thing that can have karma. It could be a user, or just some string.
 
+    mention_name should never be used for looking up entities, only for displaying a nice friendly human name instead
+    of a number.
+
     Attributes:
         USER (str): Type value for a KarmicEntity representing a user
         STRING (str): Type value for a KarmicEntity representing some arbitrary string
         KARMIC_ENTITY_TYPES ([(str, str)]): Possible values for type
-        id (str): If this entity is a user, their ID, otherwise the string itself
-        is_user (bool): True if this is a user and id is their id, otherwise False if this is some string
+        name (str): If this entity is a user, their ID, otherwise the string itself
+        type (str): One of KARMIC_ENTITY_TYPES indicating whether this is a user or a random string
+        mention_name (str): If type is USER, this will contain the most-recently-seen mention name for the user
         karma (int): This entity's current karma
         max_karma (int): The highest value karma has ever reached
         min_karma (int): The lowest value karma has ever reached
@@ -128,6 +134,7 @@ class KarmicEntity(models.Model):
     group = models.ForeignKey(Group, related_name='karmic_entities')
     name = models.CharField(max_length=50)
     type = models.CharField(max_length=1, choices=KARMIC_ENTITY_TYPES)
+    mention_name = models.CharField(blank=True, null=True, max_length=50)
     karma = models.IntegerField(default=0)
     max_karma = models.IntegerField(default=0)
     min_karma = models.IntegerField(default=0)
@@ -136,6 +143,21 @@ class KarmicEntity(models.Model):
         index_together = [
             ['group', 'name', 'type']
         ]
+
+    @classmethod
+    def update_mentions(cls, group, mentions):
+        """Given a list of mentions, update the mention names of any extant KarmicEntities
+
+        Args:
+            group: The group within which to look for entities
+            mentions ([{}]): A list of dicts representing mentions. Each dict must have 'id' and 'mention_name' keys.
+        """
+        for mention in mentions:
+            try:
+                entity = cls.objects.get(type=cls.USER, name=mention['id'], group=group)
+                entity.update_mention(mention['mention_name'])
+            except KarmicEntity.DoesNotExist:
+                pass
 
     def give_karma(self, value):
         """Apply karma to this entity.
@@ -157,6 +179,50 @@ class KarmicEntity(models.Model):
             self.min_karma = new_karma
         self.karma = new_karma
         self.save()
+
+    def get_karma_sample(self, n):
+        """Get a sampling of karma for this entity.
+
+        Takes a random sample of up to n of the Karmas given to this user (samples good and bad separately and returns n
+        Karmas of each type.)
+
+        Args:
+            n (int): The number of comments to get for each type of karma.
+        Returns:
+            ([Karma], [Karma]): A list of up to n good Karmas given to this user, and up to n bad ones.
+        """
+        def reservoir_sample(n_, l):
+            r = []
+            for i, x in enumerate(l):
+                if i < n_:
+                    r.append(x)
+                elif random.random() < n_/float(i+1):
+                    j = random.randint(0, n_-1)
+                    r[j] = x
+            return r
+
+        good = self.karma_received.filter(value=Karma.GOOD, comment__isnull=False)
+        bad = self.karma_received.filter(value=Karma.BAD, comment__isnull=False)
+        return reservoir_sample(n, good), reservoir_sample(n, bad)
+
+    def get_name(self):
+        """Return the mention name (if this is a user) or the string
+
+        Returns:
+            str: The mention name if this is a user, or just the string
+        """
+        name = self.name if self.type == self.STRING else self.mention_name
+        return name or 'Unknown'
+
+    def update_mention(self, mention_name):
+        """Update the mention name of this entity.
+
+        Args:
+            mention_name (str): The mention name which corresponds to this entity
+        """
+        if self.mention_name != mention_name:
+            self.mention_name = mention_name
+            self.save()
 
     def __str__(self):
         return "User {id}".format(id=self.name) if self.type == KarmicEntity.USER else self.name
@@ -186,7 +252,6 @@ class Karma(models.Model):
 
     recipient = models.ForeignKey(KarmicEntity, related_name='karma_received', db_index=True)
     sender = models.ForeignKey(KarmicEntity, related_name='karma_sent', db_index=True)
-    instance = models.ForeignKey(Instance)
     value = models.CharField(max_length=1, choices=KARMA_VALUES)
     when = models.DateTimeField(auto_now_add=True)
     comment = models.TextField(blank=True, null=True)
@@ -232,7 +297,6 @@ class Karma(models.Model):
         # Save a new karma with the data
         karma = Karma.objects.create(recipient=recipient_entity,
                                      sender=sender_entity,
-                                     instance=instance,
                                      value=value,
                                      comment=comment)
 

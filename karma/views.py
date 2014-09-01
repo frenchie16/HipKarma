@@ -194,6 +194,9 @@ def give_hook(request):
             karma=karma.recipient.karma
         )
     )
+
+    # Update any mentions we can
+    KarmicEntity.update_mentions(instance.group, mentions + [sender])
     return HttpResponse('Applied karma successfully')
 
 
@@ -223,8 +226,8 @@ def show_hook(request):
         message = item['message']
         message_text = message['message']
         mentions = message['mentions']
-        room = item['room']
         oauth_client_id = payload['oauth_client_id']
+        sender = message['from']
     except KeyError:
         logger.error('Invalid payload data')
         return HttpResponseBadRequest('Invalid payload data')
@@ -244,7 +247,7 @@ def show_hook(request):
 
     # Determine if the name is a valid mention and set type and id accordingly
     try:
-        if mention and mentions and mentions[0]['mention_name'] == name:
+        if mention and mentions and mentions[0]['mention_name'].lower() == name.lower():
             type_ = KarmicEntity.USER
             id_ = mentions[0]['id']
         else:
@@ -267,16 +270,38 @@ def show_hook(request):
         )
         return HttpResponse('Karma did not exist, notified room.')
 
+    # Get a sample of karma for the entity
+    good_sample, bad_sample = entity.get_karma_sample(3)
+
+    KarmicEntity.update_mentions(instance.group, mentions + [sender])
+
+    # Build strings showing sample of karma comments
+    good_sample_string = ''
+    for karma in good_sample:
+        string = '@{name}: {comment}\n'.format(name=karma.sender.get_name(), comment=karma.comment)
+        good_sample_string += string
+
+    bad_sample_string = ''
+    for karma in bad_sample:
+        string = '@{name}: {comment}\n'.format(name=karma.sender.get_name(), comment=karma.comment)
+        bad_sample_string += string
+
     # Notify room about the karma
     instance.send_room_notification(
         '{symbol}{name} has {karma} total karma. The highest it has ever been is {max} and the lowest it has ever been '
-        'is {min}.'
+        'is {min}.\n\n'
+        'Good:\n'
+        '{good_sample}\n'
+        'Bad:\n'
+        '{bad_sample}'
         .format(
             symbol=mention,
             name=name,
             karma=entity.karma,
             min=entity.min_karma,
             max=entity.max_karma,
+            good_sample=good_sample_string or 'None!\n',
+            bad_sample=bad_sample_string or 'None!\n',
         )
     )
     return HttpResponse('Showed karma successfully')
@@ -308,6 +333,8 @@ def help_hook(request):
         message = item['message']
         message_text = message['message']
         oauth_client_id = payload['oauth_client_id']
+        sender = message['from']
+        mentions = message['mentions']
     except KeyError:
         logger.error('Invalid payload data')
         return HttpResponseBadRequest('Invalid payload data')
@@ -335,4 +362,6 @@ def help_hook(request):
             addon_chat_name=settings.ADDON_CHAT_NAME,
         )
     )
+    # Update any mentions we can
+    KarmicEntity.update_mentions(instance.group, mentions + [sender])
     return HttpResponse('Showed help successfully')

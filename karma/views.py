@@ -155,16 +155,23 @@ def give_hook(request):
     comment = groups[4]
 
     # Determine if recipient_name is a valid mention and set recipient_id and recipient_type accordingly
-    try:
-        if mention and mentions and mentions[0]['mention_name'].lower() == recipient_name.lower():
-            recipient_type = KarmicEntity.USER
-            recipient_id = mentions[0]['id']
-        else:
-            recipient_type = KarmicEntity.STRING
-            recipient_id = mention + recipient_name
-    except KeyError:
-        logger.error('Invalid payload data')
-        return HttpResponseBadRequest('Invalid payload data')
+    matching_mention = {}
+    if mention:
+        try:
+            for m in mentions:
+                if m['mention_name'].lower() == recipient_name.lower():
+                    matching_mention = m
+                    break
+        except KeyError:
+            logger.error('Invalid payload data')
+            return HttpResponseBadRequest('Invalid payload data')
+
+    if matching_mention:
+        recipient_type = KarmicEntity.USER
+        recipient_id = matching_mention['id']
+    else:
+        recipient_type = KarmicEntity.STRING
+        recipient_id = mention + recipient_name
 
     # Get the karma value from the operator
     value = {
@@ -187,11 +194,10 @@ def give_hook(request):
 
     # Notify room about the karma
     instance.send_room_notification(
-        '{symbol}{recipient} has {karma} total karma.'
+        '{recipient} has {total} total karma.'
         .format(
-            symbol=mention,
-            recipient=recipient_name,
-            karma=karma.recipient.karma
+            recipient=karma.recipient.get_name(),
+            total=karma.recipient.karma
         )
     )
 
@@ -245,17 +251,24 @@ def show_hook(request):
     mention = groups[0] or ''
     name = groups[1] or groups[2]
 
-    # Determine if the name is a valid mention and set type and id accordingly
-    try:
-        if mention and mentions and mentions[0]['mention_name'].lower() == name.lower():
-            type_ = KarmicEntity.USER
-            id_ = mentions[0]['id']
-        else:
-            type_ = KarmicEntity.STRING
-            id_ = mention + name
-    except KeyError:
-        logger.error('Invalid payload data')
-        return HttpResponseBadRequest('Invalid payload data')
+    # Determine if recipient_name is a valid mention and set recipient_id and recipient_type accordingly
+    matching_mention = {}
+    if mention:
+        try:
+            for m in mentions:
+                if m['mention_name'].lower() == name.lower():
+                    matching_mention = m
+                    break
+        except KeyError:
+            logger.error('Invalid payload data')
+            return HttpResponseBadRequest('Invalid payload data')
+
+    if matching_mention:
+        type_ = KarmicEntity.USER
+        id_ = matching_mention['id']
+    else:
+        type_ = KarmicEntity.STRING
+        id_ = mention + name
 
     try:
         entity = KarmicEntity.objects.get(group=group, type=type_, name=id_)
@@ -268,7 +281,7 @@ def show_hook(request):
                 name=name,
             )
         )
-        return HttpResponse('Karma did not exist, notified room.')
+        return HttpResponse('Target did not exist, notified room.')
 
     # Get a sample of karma for the entity
     good_sample, bad_sample = entity.get_karma_sample(3)
@@ -288,15 +301,14 @@ def show_hook(request):
 
     # Notify room about the karma
     instance.send_room_notification(
-        '{symbol}{name} has {karma} total karma. The highest it has ever been is {max} and the lowest it has ever been '
+        '{name} has {karma} total karma. The highest it has ever been is {max} and the lowest it has ever been '
         'is {min}.\n\n'
         'Good:\n'
         '{good_sample}\n'
         'Bad:\n'
         '{bad_sample}'
         .format(
-            symbol=mention,
-            name=name,
+            name=entity.get_name(),
             karma=entity.karma,
             min=entity.min_karma,
             max=entity.max_karma,

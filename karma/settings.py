@@ -23,7 +23,7 @@ REGEXES = {
     # Capture group 1 or 2 should contain the name of the recipient (the other should be empty).
     # Capture group 3 should contain either '++' or '--'.
     # Capture group 4 should contain an optional comment.
-    'give_karma': r'(?:(@)?(\S{1,50}) ?|\(([^)\r\n]{1,48})\))(\+\+|--)(?: *(?:#|\/\/)\s*(\S.*))?$',
+    'give_karma': r'^(?:(@)?(\S{1,50}) ?|\(([^)\r\n]{1,48})\))(\+\+|--)(?: *(?:#|\/\/)\s*(\S.*))?$',
 
     # Regex for chat command to show someone/something's karma
     # Capture group 0 or 1 should contain the name to show karma for (the other should be empty)

@@ -192,6 +192,8 @@ def give_hook(request):
         logger.info('Foiling dastardly narcissism')
         return HttpResponse('Karma was invalid due to narcissism')
 
+    KarmicEntity.update_mentions(instance.group, mentions + [sender])
+
     # Notify room about the karma
     instance.send_room_notification(
         '{recipient} has {total} total karma.'
@@ -202,7 +204,6 @@ def give_hook(request):
     )
 
     # Update any mentions we can
-    KarmicEntity.update_mentions(instance.group, mentions + [sender])
     return HttpResponse('Applied karma successfully')
 
 

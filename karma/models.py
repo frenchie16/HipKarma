@@ -211,8 +211,7 @@ class KarmicEntity(models.Model):
         Returns:
             str: The mention name if this is a user, or just the string
         """
-        name = self.name if self.type == self.STRING else self.mention_name
-        return name or 'Unknown'
+        return self.name if self.type == self.STRING else ('@' + self.mention_name if self.mention_name else 'Unknown')
 
     def update_mention(self, mention_name):
         """Update the mention name of this entity.

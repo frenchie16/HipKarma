@@ -292,12 +292,12 @@ def show_hook(request):
     # Build strings showing sample of karma comments
     good_sample_string = ''
     for karma in good_sample:
-        string = '@{name}: {comment}\n'.format(name=karma.sender.get_name(), comment=karma.comment)
+        string = '{name}: {comment}\n'.format(name=karma.sender.get_name(), comment=karma.comment)
         good_sample_string += string
 
     bad_sample_string = ''
     for karma in bad_sample:
-        string = '@{name}: {comment}\n'.format(name=karma.sender.get_name(), comment=karma.comment)
+        string = '{name}: {comment}\n'.format(name=karma.sender.get_name(), comment=karma.comment)
         bad_sample_string += string
 
     # Notify room about the karma

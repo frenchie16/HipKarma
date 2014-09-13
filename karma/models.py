@@ -154,10 +154,12 @@ class KarmicEntity(models.Model):
         """
         for mention in mentions:
             try:
-                entity = cls.objects.get(type=cls.USER, name=mention['id'], group=group)
-                entity.update_mention(mention['mention_name'])
+                entity = cls.objects.get(group=group, name=mention['id'], type=cls.USER)
+                entity.mention_name = mention['mention_name']
+                entity.save()
             except KarmicEntity.DoesNotExist:
-                pass
+                cls.objects.create(group=group, name=mention['id'], type=cls.USER,
+                                   mention_name=mention['mention_name'])
 
     def give_karma(self, value):
         """Apply karma to this entity.
@@ -213,18 +215,11 @@ class KarmicEntity(models.Model):
         """
         return self.name if self.type == self.STRING else ('@' + self.mention_name if self.mention_name else 'Unknown')
 
-    def update_mention(self, mention_name):
-        """Update the mention name of this entity.
-
-        Args:
-            mention_name (str): The mention name which corresponds to this entity
-        """
-        if self.mention_name != mention_name:
-            self.mention_name = mention_name
-            self.save()
-
     def __str__(self):
-        return "User {id}".format(id=self.name) if self.type == KarmicEntity.USER else self.name
+        return "{type} {name}".format(
+            type=dict(self.KARMIC_ENTITY_TYPES)[self.type],
+            name=self.get_name(),
+        )
 
 
 class Karma(models.Model):

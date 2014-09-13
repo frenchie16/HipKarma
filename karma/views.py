@@ -179,6 +179,9 @@ def give_hook(request):
         '--': Karma.BAD,
     }[karma_operator]
 
+    # Update mentions now so that the mention name for the recipient (if a user) is already there before we apply karma
+    KarmicEntity.update_mentions(instance.group, mentions + [sender])
+
     # Process the new karma
     try:
         karma = Karma.apply_new(instance=instance,
@@ -191,8 +194,6 @@ def give_hook(request):
         instance.send_room_notification('Nice try, @{name}.'.format(name=sender_mention_name))
         logger.info('Foiling dastardly narcissism')
         return HttpResponse('Karma was invalid due to narcissism')
-
-    KarmicEntity.update_mentions(instance.group, mentions + [sender])
 
     # Notify room about the karma
     instance.send_room_notification(

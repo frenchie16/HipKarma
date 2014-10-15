@@ -14,7 +14,7 @@ import dj_database_url
 import os
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -36,6 +36,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djangobower',
+    'hipchat',
     'karma'
 )
 
@@ -81,7 +83,25 @@ STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static/'),
+    os.path.join(BASE_DIR, 'bower_components/jquery/dist'),
+    os.path.join(BASE_DIR, 'bower_components/bootstrap/dist'),
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'djangobower.finders.BowerFinder',
+)
+
+
+# Bower Settings
+# http://django-bower.readthedocs.org/en/latest/usage.html
+
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, 'components')
+
+BOWER_INSTALLED_APPS = (
+    'jquery#1.9.0',
+    'bootstrap#3.2.0',
 )
 
 # Parse database configuration from $DATABASE_URL

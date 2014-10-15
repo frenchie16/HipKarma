@@ -48,13 +48,17 @@ $ python manage.py syncdb
 $ foreman start web
 ```
 
-Your app should now be running on [localhost:5000](http://localhost:5000/). You can use [`ngrok`](http://ngrok.com) to make
-your local server accessible from the internet, allowing webhooks to function.
+Your app should now be running on [localhost:5000](http://localhost:5000/). You can use [`ngrok`](http://ngrok.com) to
+make your local server accessible from the internet, allowing webhooks to function.
 
 ## Deploying to Heroku
 
+To deploy to Heroku it is necessary to specify a custom buildpack which calls both the Python and the Node.js
+buildpacks. The Node.js buildpack is used to install bower, which is then used to install HTML/CSS/JS dependencies.
+
 ```sh
 $ heroku create
+$ heroku config:add BUILDPACK_URL=https://github.com/ddollar/heroku-buildpack-multi.git
 $ git push heroku master
 $ heroku run python manage.py syncdb
 $ heroku open

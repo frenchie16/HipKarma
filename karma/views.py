@@ -1,5 +1,6 @@
 import logging
 import json
+from django.contrib.auth.decorators import login_required
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -15,13 +16,13 @@ logger = logging.getLogger(__name__)
 
 # Views
 
+@login_required
 def index(request):
     """Main page"""
-    # Todo Provide a nice status page, maybe some karma statistics
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    return HttpResponse('HipKarma is running.')
+    return render(request, 'index.html')
 
 
 def capabilities(request):
